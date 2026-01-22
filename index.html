@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Porto Tour - Agência de Turismo Oficial</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <style>
+    /* --- CONFIGURAÇÕES GERAIS --- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; color: #333; overflow-x: hidden; }
+    
+    header {
+      background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://i.catracalivre.com.br/vmsm_IoEHnttGFHV34ycsMuTd2E=/filters:quality(60)/catracalivre.com.br/wp-content/uploads/2024/01/istock-1340960918.jpg') center/cover;
+      height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;
+    }
+    header h1 { font-size: 2.2rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; text-shadow: 2px 2px 8px rgba(0,0,0,0.7); }
+    header .subtitulo { font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; color: #ffcc00; text-transform: uppercase; }
+    header p { font-size: 1rem; max-width: 600px; line-height: 1.4; font-weight: 400; }
+
+    nav { 
+      background: #0d6efd; height: 70px; display: flex; align-items: center; justify-content: space-between; 
+      padding: 0 5%; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+    }
+    .logo { color: white; font-weight: 800; font-size: 1.3rem; }
+
+    .botoes-topo { display: flex; align-items: center; gap: 15px; }
+    .btn-cart, .btn-abrir-menu { color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 5px; transition: 0.3s; }
+    .btn-cart:hover, .btn-abrir-menu:hover { background: rgba(255,255,255,0.1); }
+    .cart-count { background: #ffcc00; color: #000; border-radius: 50%; padding: 2px 7px; font-size: 0.8rem; }
+
+    .painel-lateral { position: fixed; top: 0; right: -320px; width: 320px; height: 100%; background: white; z-index: 3000; transition: 0.4s; box-shadow: -5px 0 15px rgba(0,0,0,0.2); padding: 25px; display: flex; flex-direction: column; }
+    .painel-lateral.ativo { right: 0; }
+    
+    .fechar-painel { align-self: flex-end; font-size: 25px; cursor: pointer; color: #333; margin-bottom: 20px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+    
+    .painel-lateral h3 { color: #0d6efd; margin-bottom: 20px; border-bottom: 2px solid #ffcc00; padding-bottom: 10px; }
+    .menu-item { display: flex; align-items: center; gap: 15px; text-decoration: none; color: #333; margin-bottom: 20px; font-size: 1.1rem; font-weight: 600; }
+
+    #lista-carrinho { flex-grow: 1; overflow-y: auto; list-style: none; }
+    .item-carrinho { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+    .remove-item { color: #dc3545; cursor: pointer; }
+    .total-carrinho { margin-top: 20px; font-size: 1.2rem; font-weight: bold; text-align: right; border-top: 2px solid #eee; padding-top: 10px; }
+    .btn-finalizar { background: #25d366; color: white; text-align: center; padding: 15px; text-decoration: none; border-radius: 8px; margin-top: 15px; font-weight: bold; }
+
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2999; display: none; }
+    .overlay.ativo { display: block; }
+
+    .container { max-width: 1200px; margin: auto; padding: 40px 15px; }
+    .titulo-secao { text-align: center; color: #0d6efd; margin-bottom: 35px; font-size: 1.8rem; font-weight: bold; }
+    .grade-passeios { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .caixa-passeio { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); text-align: center; display: flex; flex-direction: column; transition: 0.3s; }
+    .caixa-passeio:hover { transform: translateY(-5px); }
+    .container-foto { position: relative; width: 100%; height: 220px; overflow: hidden; }
+    .container-foto img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: 0.5s; }
+    .img-hover { opacity: 0; }
+    .caixa-passeio:hover .img-principal { opacity: 0; }
+    .caixa-passeio:hover .img-hover { opacity: 1; }
+    .caixa-passeio h3 { padding: 15px 10px 5px; font-size: 1.2rem; color: #1a1a1a; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+    .preco { color: #0d6efd; font-size: 1.4rem; font-weight: bold; margin-bottom: 5px; }
+    
+    .saiba-mais { color: #0d6efd; text-decoration: underline; font-size: 0.85rem; margin-bottom: 15px; cursor: pointer; font-weight: 500; }
+
+    .btn-add-carrinho { background: #0d6efd; color: white; padding: 12px; border: none; border-radius: 8px; margin: 0 15px 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    .btn-add-carrinho:hover { background: #198754; }
+
+    .modal-desc { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; background: white; z-index: 4000; border-radius: 20px; display: none; padding: 30px; box-shadow: 0 0 40px rgba(0,0,0,0.3); }
+    .modal-desc.ativo { display: block; }
+    .modal-desc h3 { color: #0d6efd; margin-bottom: 15px; border-bottom: 2px solid #ffcc00; padding-bottom: 10px; }
+    .modal-desc p { font-size: 0.95rem; line-height: 1.6; color: #444; white-space: pre-line; text-align: left; }
+    .btn-fechar-modal { background: #0d6efd; color: white; border: none; padding: 12px; border-radius: 8px; margin-top: 25px; cursor: pointer; font-weight: bold; width: 100%; }
+
+    .secao-vantagens { background: #ffffff; padding: 60px 20px; border-radius: 30px; margin-top: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;}
+    .lista-vantagens { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; list-style: none; margin-top: 40px;}
+    .card-vantagem { padding: 30px; border-radius: 20px; background: #f8faff; transition: all 0.4s ease; border: 1px solid #edf2ff; }
+    .card-vantagem:hover { transform: translateY(-10px); background: #ffffff; box-shadow: 0 15px 45px rgba(13, 110, 253, 0.1); border-color: #0d6efd; }
+    .icon-box { width: 80px; height: 80px; background: #0d6efd; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; transition: 0.3s; }
+    .card-vantagem:hover .icon-box { background: #25d366; transform: rotateY(360deg); }
+    .card-vantagem b { font-size: 1.2rem; color: #1a1a1a; display: block; margin-bottom: 10px; text-transform: uppercase; }
+    .card-vantagem p { color: #666; line-height: 1.6; font-size: 0.95rem; }
+
+    footer { background-color: #1a1a1a; color: #ffffff; padding: 50px 20px 20px; margin-top: 60px; }
+    .rodape-container { display: flex; flex-direction: column; gap: 40px; text-align: center; }
+    .pagamentos-rodape { font-size: 35px; display: flex; justify-content: center; gap: 20px; margin-top: 15px; }
+    .pix-cor { color: #32bcad; }
+    .visa-cor { color: #1a1f71; background: white; border-radius: 4px; padding: 2px; }
+    .master-cor { color: #ff5f00; }
+    .direitos { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #333; font-size: 12px; color: #888; }
+    
+    .whatsapp-fixo { position: fixed; width: 60px; height: 60px; bottom: 20px; right: 20px; background: #25d366; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+    @media (min-width: 768px) {
+      .rodape-container { flex-direction: row; justify-content: space-between; text-align: left; max-width: 1200px; margin: auto; }
+      .pagamentos-rodape { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay" id="overlay" onclick="fecharTudo()"></div>
+
+  <div class="modal-desc" id="modalDesc">
+    <h3 id="modalTitulo"></h3>
+    <p id="modalTexto"></p>
+    <button class="btn-fechar-modal" onclick="fecharTudo()">Entendido</button>
+  </div>
+
+  <div class="painel-lateral" id="painelCarrinho">
+    <div class="fechar-painel" onclick="fecharTudo()"><i class="fas fa-times"></i></div>
+    <h3>Meu Carrinho</h3>
+    <ul id="lista-carrinho"></ul>
+    <div class="total-carrinho">Total: R$ <span id="valor-total">0,00</span></div>
+    <a href="#" id="finalizar-whatsapp" class="btn-finalizar" target="_blank">Finalizar no WhatsApp</a>
+  </div>
+
+  <div class="painel-lateral" id="painelMenu">
+    <div class="fechar-painel" onclick="fecharTudo()"><i class="fas fa-times"></i></div>
+    <h3>Navegação</h3>
+    <a href="#passeios" class="menu-item" onclick="toggleMenu()"><i class="fas fa-umbrella-beach"></i> PASSEIOS</a>
+    <a href="#vantagens" class="menu-item" onclick="toggleMenu()"><i class="fas fa-star"></i> DIFERENCIAIS</a>
+    <h3 style="margin-top: 30px;">Fale Conosco</h3>
+    <a href="https://wa.me/5573991976996" class="menu-item" target="_blank"><i class="fab fa-whatsapp" style="color:#25d366"></i> WhatsApp</a>
+    <a href="mailto:RenatoC376@gmail.com" class="menu-item"><i class="fas fa-envelope" style="color:#0d6efd"></i> E-mail</a>
+  </div>
+
+  <nav>
+    <div class="logo">PORTO TOUR</div>
+    <div class="botoes-topo">
+      <div class="btn-cart" onclick="toggleCarrinho()">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count" id="contagem-carrinho">0</span>
+      </div>
+      <div class="btn-abrir-menu" onclick="toggleMenu()">
+        MENU <i class="fas fa-bars"></i>
+      </div>
+    </div>
+  </nav>
+
+  <header>
+    <h1>PORTO TOUR</h1>
+    <div class="subtitulo">Sua agência em Porto Seguro</div>
+    <p>Explore o paraíso com quem é referência em segurança e lazer.</p>
+  </header>
+
+  <div class="container">
+    <div id="passeios">
+      <h2 class="titulo-secao">Roteiros Exclusivos</h2>
+      <div class="grade-passeios">
+        
+        <div class="caixa-passeio">
+            <div class="container-foto">
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4-UGrJHNpymauUpCmhdaf-k1s8sC5p9eEog&s" class="img-principal">
+              <img src="https://www.iluminaarraialdajuda.com.br/wp-content/uploads/2023/07/arr3.jpg" class="img-hover">
+            </div>
+            <h3>Arraial d'Ajuda ⭐</h3><span class="preco">R$ 100,00</span>
+            <div class="saiba-mais" onclick="abrirSaibaMais(0)">Saiba mais</div>
+            <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Arraial d\'Ajuda', 100)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCnJMEw4EEdmaLtBSE-sirgLLQ_6U0Rvnwug&s" class="img-principal">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHbQLnzS7aVB_YF1kAZTEVn3Ie-iyTGJfawQ&s" class="img-hover">
+          </div>
+          <h3>City Tour Histórico</h3><span class="preco">R$ 100,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(1)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('City Tour Histórico', 100)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/17/b8/a5/6f/quadrado.jpg?w=800&h=800&s=1" class="img-principal">
+            <img src="https://www.essemundoenosso.com.br/wp-content/uploads/2017/08/QuadradoDeTrancoso01.jpg" class="img-hover">
+          </div>
+          <h3>Trancoso ⭐</h3><span class="preco">R$ 100,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(2)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Trancoso', 100)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://ateondeeupuderir.com/wp-content/uploads/2025/02/praia-do-espelho-capa.jpg" class="img-principal">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyQf2oiWohg6BZp7YdwC8AvnLIjY6ZcEkT6w&s" class="img-hover">
+          </div>
+          <h3>Praia do Espelho ⭐</h3><span class="preco">R$ 130,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(3)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Praia do Espelho', 130)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://www.viagenscinematograficas.com.br/wp-content/uploads/2019/06/Caraiva-Bahia-Como-Ir-Passeio-Capa.jpg" class="img-principal">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRicZL8fBLbSRGt-Hw1UxXSObafo--k65Q5Zg&s" class="img-hover">
+          </div>
+          <h3>Caraíva (s/ travessia)</h3><span class="preco">R$ 150,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(4)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Caraíva', 180)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://recifedeforaportoseguro.com.br/wp-content/webp-express/webp-images/uploads/2025/11/vista-aerea-piscinas-naturais-recife-de-fora-porto-seguro.png.webp" class="img-principal">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSy30JbnGyW0OLz2C2wRTqV3Ii6tYsRHe81iA&s" class="img-hover">
+          </div>
+          <h3>Recife de Fora (c/ Transfer)</h3><span class="preco">R$ 180,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(5)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Recife de Fora (c/ Transfer)', 180)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+            <div class="container-foto">
+              <img src="https://www.mercadoeeventos.com.br/wp-content/uploads/2023/07/WhatsApp-Image-2023-07-21-at-16.05.37.jpeg" class="img-principal">
+              <img src="https://imagedelivery.net/EafvxYlk8cSUsWEWsetEdQ/c8f94df8-99ff-4e58-fcb4-4c47e096ef00/w=900" class="img-hover">
+            </div>
+            <h3>Recife de Fora (s/ Transfer)</h3><span class="preco">R$ 155,00</span>
+            <div class="saiba-mais" onclick="abrirSaibaMais(6)">Saiba mais</div>
+            <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Recife de Fora (s/ Transfer)', 155)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdr4D_pSbXh8CWFa5B5JfOZVLVyTsNS6bxdw&s" class="img-principal">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTm6AZ2UQ6CHIMuder_-H3GphN6m7h8zKgkwA&s" class="img-hover">
+          </div>
+          <h3>Mergulho (c/ Transfer)</h3><span class="preco">R$ 280,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(7)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Mergulho', 280)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://portobahiaturismo.com.br/wp-content/uploads/2023/07/feirinha-indigena-coroa-vermelha-porto-bahia-turismo.webp" class="img-principal">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS19O1t43rjP55FbmxZHX0KCOc8fqaT1imW1g&s" class="img-hover">
+          </div>
+          <h3>Coroa Vermelha</h3><span class="preco">R$ 80,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(8)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Coroa Vermelha', 80)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://pataxoturismo.com.br/wp-content/uploads/2020/01/parque-marinho-de-coroa-alta-foto-1-1.jpg" class="img-principal">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNNgswIBbDBefoOqR9JCBiJU6CQv5HJaEaWg&s" class="img-hover">
+          </div>
+          <h3>Fluvial e Coroa Alta</h3><span class="preco">R$ 140,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(9)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Coroa Alta', 140)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+            <div class="container-foto">
+              <img src="https://portoquadri.com.br/wp-content/uploads/2025/05/porto-photo5.webp" class="img-principal">
+              <img src="https://cdn.paytour.com.br/assets/images/passeios-2501113/98dab624ecc16672151fdcbf71c1b2c9/9.jpg" class="img-hover">
+            </div>
+            <h3>Quadriciclo (Reserva Indigena) ⭐</h3><span class="preco">R$ 350,00</span>
+            <div class="saiba-mais" onclick="abrirSaibaMais(10)">Saiba mais</div>
+            <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Quadriciclo Reserva', 350)">Adicionar ao carrinho</button>
+        </div>
+
+        <div class="caixa-passeio">
+          <div class="container-foto">
+            <img src="https://portobrasiltur.com.br/wp-content/webp-express/webp-images/uploads/2020/12/WhatsApp-Image-2025-10-15-at-22.57.41-768x960.jpeg.webp" class="img-principal">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTWydOx60cS7P6Z-kQIgukC9XZubpX07gltg&s" class="img-hover">
+          </div>
+          <h3>Quadriciclo (Rota do Açaí) ⭐</h3><span class="preco">R$ 300,00</span>
+          <div class="saiba-mais" onclick="abrirSaibaMais(11)">Saiba mais</div>
+          <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('Quadriciclo Fazenda', 300)">Adicionar ao carrinho</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="vantagens" class="secao-vantagens">
+      <h2 class="titulo-secao">Por que nos escolher?</h2>
+      <ul class="lista-vantagens">
+        <li class="card-vantagem">
+          <div class="icon-box"><i class="fas fa-award"></i></div>
+          <b>Agência Oficial</b>
+          <p>Empresa credenciada garantindo segurança e conforto em todos os Roteiros.</p>
+        </li>
+        <li class="card-vantagem">
+          <div class="icon-box"><i class="fas fa-users-cog"></i></div>
+          <b>Segurança Total</b>
+          <p>Guias Credenciados, Especialistas locais apaixonados por história e prontos para te guiar.</p>
+        </li>
+        <li class="card-vantagem">
+          <div class="icon-box"><i class="fas fa-heart"></i></div>
+          <b>Atendimento VIP</b>
+          <p>Suporte personalizado via WhatsApp antes, durante e depois dos passeios.</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <a href="https://wa.me/5573991976996" class="whatsapp-fixo" target="_blank"><i class="fab fa-whatsapp"></i></a>
+
+  <footer>
+    <div class="rodape-container">
+      <div class="rodape-coluna">
+        <h3>PORTO TOUR</h3>
+        <p>A Melhor escolha para conhecer o melhor de Porto Seguro.</p>
+        <p style="color:#25d366; font-weight: bold; margin-top: 10px;"><i class="fas fa-check-circle"></i> Agência Verificada</p>
+      </div>
+      <div class="rodape-coluna">
+        <h3>Contato</h3>
+        <p><i class="fab fa-whatsapp"></i> (73) 99197-6996</p>
+        <p><i class="fas fa-envelope"></i> RenatoC376@gmail.com</p>
+      </div>
+      <div class="rodape-coluna">
+        <h3>Pagamento</h3>
+        <div class="pagamentos-rodape">
+          <i class="fab fa-pix pix-cor"></i>
+          <i class="fab fa-cc-visa visa-cor"></i>
+          <i class="fab fa-cc-mastercard master-cor"></i>
+        </div>
+      </div>
+    </div>
+    <div class="direitos">
+      &copy; 2026 Porto Tour | Todos os direitos reservados.
+    </div>
+  </footer>
+
+  <script>
+    let carrinho = [];
+    let total = 0;
+
+    const infoPasseios = [
+        { 
+          n: 'Arraial d\'Ajuda', 
+          d: 'Descubra o encanto de Arraial d’Ajuda, um dos destinos mais charmosos e acolhedores do litoral sul da Bahia.\n\nO passeio começa com uma agradável travessia de balsa pelo Rio Buranhém, seguida de um dia repleto de paisagens paradisíacas, cultura e boa gastronomia.\n\nO PASSEIO:\nA primeira parada acontece nas praias de Arraial, com cerca de 4 horas para banho e lazer.\nEm seguida, o roteiro segue para a Vila de Nossa Senhora d’Ajuda, onde é possível visitar a charmosa Igreja da padroeira, o Mirante das Fitas, a Fonte de Água da Santa e a tradicional Rua do “Bróduei”, repleta de lojas e restaurantes típicos.\n\nUm passeio perfeito para quem busca descanso, história e o verdadeiro charme baiano.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDAS: TODOS OS DIAS\n📌 HORÁRIO: SAÍDA ENTRE 7H40 E 8H40 | RETORNO ÀS 17H\n📌 TRANSPORTE: VAN CLIMATIZADA\n📌 ACOMPANHAMENTO: GUIA CREDENCIADO\n\nVALORES:\n📌 ADULTO: R$ 100,00\n📌 INFANTIL: R$ 85,00 (CRIANÇAS ATÉ 5 ANOS)\n📌 GRATUITO: ATÉ 3 ANOS (NO COLO)' 
+        },
+        { 
+          n: 'City Tour Histórico', 
+          d: 'O passeio tem início com a visita a uma aldeia indígena Pataxó, onde os visitantes são recebidos pelos próprios indígenas. Há apresentações sobre história, costumes, danças culturais e exposição de artesanato. \n\nApós 40 minutos, seguimos para a Praia de Coroa Vermelha (parada de 4h) com águas calmas e claras. O roteiro inclui 1h livre na Passarela Indígena e termina com um city tour pelo Centro Histórico de Porto Seguro.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDAS: QUARTAS-FEIRAS\n📌 HORÁRIO: 07:40 ÀS 16:00.' 
+        },
+        { 
+          n: 'Trancoso', 
+          d: 'Descubra o charme e a sofisticação de Trancoso, um dos destinos mais encantadores do litoral sul da Bahia.\n\nO passeio começa com destino à Praia dos Coqueiros (4 horas de lazer). Durante o percurso, é possível caminhar até a Praia dos Nativos e a Casinha do Pescador. A segunda etapa acontece no icônico Quadrado de Trancoso, visitando a Igreja de São João Batista e o comércio local.\n\nNo retorno, há paradas no Vale Verde para degustação e em uma fábrica de chocolate artesanal.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDAS: TODOS OS DIAS\n📌 HORÁRIO: 07:40 ÀS 17:00.' 
+        },
+        { 
+          n: 'Praia do Espelho ⭐', 
+          d: 'Viva uma das experiências mais encantadoras de Porto Seguro, em um passeio que combina aventura, natureza e paisagens de tirar o fôlego.\n\nA Praia do Espelho, localizada entre Trancoso e Caraíva, é reconhecida como uma das praias mais belas do Brasil, famosa por suas falésias coloridas, águas cristalinas e piscinas naturais formadas na maré baixa.\n\nO PASSEIO:\nO trajeto até a Praia do Espelho é uma verdadeira imersão na natureza: percorremos uma estrada de terra rodeada por fazendas e matas, cruzando o Rio dos Frades e passando pela tribo indígena de Imbiriba, em Itaporanga.\nDurante o percurso, o guia compartilha curiosidades sobre a região, a cultura local e as tradições indígenas.\nAo chegar ao destino, há uma parada de cerca de 4 horas para aproveitar o mar, as piscinas naturais e a beleza singular desse paraíso.\n\nNo retorno, há uma visita ao Vale Verde, onde é possível degustar cachaças artesanais, cocadas e chocolates produzidos na região.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDAS: TODOS OS DIAS\n📌 HORÁRIO: SAÍDA ENTRE 7H40 E 8H40 | RETORNO ÀS 17H\n📌 TRANSPORTE: VAN CLIMATIZADA\n📌 ACOMPANHAMENTO: GUIA CREDENCIADO\n\nVALORES:\n📌 ADULTO: R$ 130,00\n📌 INFANTIL: R$ 105,00 (CRIANÇAS ATÉ 5 ANOS)\n📌 GRATUITO: ATÉ 3 ANOS (NO COLO)' 
+        },
+        { 
+          n: 'Caraíva (s/ travessia)', 
+          d: 'Descubra o encanto rústico e inesquecível de Caraíva, um vilarejo que parece transportar o visitante para outra dimensão — sem carros, trânsito ou barulho, apenas paz, natureza e simplicidade.\n\nEste passeio é ideal para quem busca tranquilidade, cultura local e paisagens exuberantes entre o rio, o mar e as ruas de areia coloridas do vilarejo.\n\nO PASSEIO:\nLocalizada a aproximadamente 120 km de Porto Seguro, a viagem dura cerca de 2h30, sendo 50 minutos de asfalto e 1h40 por estrada de terra.\nAo chegar, o grupo realiza a travessia de canoa até a Vila de Caraíva, onde o guia apresenta os principais pontos turísticos: a famosa casinha do “Sorria, você está em Caraíva”, a Igreja de São Sebastião, a Barra do Rio e o caminho para a praia.\nO tempo livre para banho e lazer é de cerca de 4 horas, ideal para aproveitar o mar calmo e o encontro mágico entre o rio e o oceano.\n\nNo retorno, o passeio faz uma parada no Vale Verde, onde é possível degustar as tradicionais cachaças artesanais, cocadas e doces produzidos pela comunidade local.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDAS: TERÇA, QUINTA E SÁBADO\n📌 HORÁRIO: SAÍDA ENTRE 7H30 E 8H30 | RETORNO ÀS 17H\n📌 TRANSPORTE: VAN CLIMATIZADA (SEM TRAVESSIA DE CANOA INCLUSA)\n📌 ACOMPANHAMENTO: GUIA CREDENCIADO\n\nVALORES:\n📌 ADULTO: R$ 150,00\n📌 INFANTIL: R$ 130,00 (CRIANÇAS ATÉ 5 ANOS)\n📌 GRATUITO: ATÉ 3 ANOS (NO COLO)' 
+        },
+        { 
+          n: 'Recife de Fora (c/ Transfer)', 
+          d: 'Terceiro maior banco de corais do Brasil. Navegação de 50 min até o parque marinho. Parada de 2h nas piscinas naturais para observação de peixes e corais. Inclui aula sobre o ecossistema local.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDA: CONFORME TÁBUA DE MARÉS.' 
+        },
+        { 
+          n: 'Recife de Fora (s/ Transfer)', 
+          d: 'A mesma experiência incrível no Parque Marinho Recife de Fora, mas para quem prefere ir até o ponto de embarque por conta própria. \n\nINFORMAÇÕES GERAIS:\n📌 NÃO INCLUI TRANSPORTE HOTEL/PÍER.' 
+        },
+        { 
+          n: 'Mergulho', 
+          d: 'Conheça o universo subaquático de Porto Seguro em profundidades de 6 a 12 metros. Instrutores qualificados orientam todo o processo de uso de equipamentos e mergulho.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDA: TODOS OS DIAS.' 
+        },
+        { 
+          n: 'Coroa Vermelha', 
+          d: 'Vivencie uma experiência única em Coroa Vermelha, um passeio que une cultura, história e belezas naturais.\nNeste roteiro, o visitante tem a oportunidade de conhecer de perto a rica tradição indígena dos Pataxós, além de aproveitar um dia de descanso em uma das praias mais tranquilas e simbólicas do litoral baiano.\n\nO PASSEIO:\nA primeira parada é na Aldeia Indígena Pataxó, onde os visitantes são recebidos com alegria e hospitalidade pela comunidade local. Durante a visita, os indígenas compartilham aspectos da sua cultura, histórias, danças e artesanatos — um momento de aprendizado e conexão com as raízes do Brasil.\nApós cerca de 40 minutos na aldeia, o passeio segue para a Praia de Coroa Vermelha, local histórico onde foi celebrada a primeira missa no Brasil. O visitante poderá desfrutar de 4 horas de lazer em uma cabana à beira-mar, com estrutura completa para um dia confortável e relaxante.\nAntes do retorno, há tempo livre para visitar a passarela indígena, famosa por suas lojinhas de artesanato e produtos típicos a preços acessíveis.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDAS: SEGUNDA, QUARTA E SEXTA\n📌 HORÁRIO: SAÍDA ENTRE 7H40 E 8H40 | RETORNO ÀS 15H\n📌 TRANSPORTE: VAN OU MICRO-ÔNIBUS CLIMATIZADO\n📌 ACOMPANHAMENTO: GUIA CREDENCIADO\n\nVALORES:\n📌 ADULTO: R$ 80,00\n📌 INFANTIL: R$ 60,00 (CRIANÇAS ATÉ 5 ANOS)\n📌 GRATUITO: ATÉ 3 ANOS (NO COLO)' 
+        },
+        { 
+          n: 'Fluvial e Coroa Alta', 
+          d: 'Passeio de escuna saindo de Santa Cruz Cabrália. Visita ao Banco de Coroa Alta (piscinas naturais), almoço e visita à Ilha do Sol com o tradicional banho de lama medicinal no manguezal.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDAS: SEGUNDA A SÁBADO\n📌 HORÁRIO: 07:40 ÀS 17:00.' 
+        },
+        { 
+          n: 'Quadriciclo Reserva', 
+          d: 'Muita adrenalina em trilhas guiadas dentro de reservas ambientais. Explore a Mata Atlântica e sinta a liberdade sobre quatro rodas.' 
+        },
+        { 
+          n: 'Quadriciclo Fazenda', 
+          d: 'Aventura na Fazenda Bom Sossego (plantio de açaí e coco). Trilhas na Mata Atlântica, degustação de cupuaçu natural e banho de cacheira com deck. No final, degustação de creme de açaí.\n\nINFORMAÇÕES GERAIS:\n📌 SAÍDA: SEG A SÁBADO (MANHÃ OU TARDE).' 
+        }
+    ];
+
+    function abrirSaibaMais(id) {
+        document.getElementById('modalTitulo').innerText = infoPasseios[id].n;
+        document.getElementById('modalTexto').innerText = infoPasseios[id].d;
+        document.getElementById('modalDesc').classList.add('ativo');
+        document.getElementById('overlay').classList.add('ativo');
+    }
+
+    function toggleMenu() {
+      fecharTudo();
+      document.getElementById('painelMenu').classList.toggle('ativo');
+      document.getElementById('overlay').classList.toggle('ativo');
+    }
+
+    function toggleCarrinho() {
+      fecharTudo();
+      document.getElementById('painelCarrinho').classList.toggle('ativo');
+      document.getElementById('overlay').classList.toggle('ativo');
+    }
+
+    function fecharTudo() {
+      document.getElementById('painelMenu').classList.remove('ativo');
+      document.getElementById('painelCarrinho').classList.remove('ativo');
+      document.getElementById('modalDesc').classList.remove('ativo');
+      document.getElementById('overlay').classList.remove('ativo');
+    }
+
+    function adicionarAoCarrinho(nome, preco) {
+      carrinho.push({ nome, preco });
+      total += preco;
+      atualizarInterface();
+      toggleCarrinho(); 
+    }
+
+    function removerDoCarrinho(index) {
+      total -= carrinho[index].preco;
+      carrinho.splice(index, 1);
+      atualizarInterface();
+    }
+
+    function atualizarInterface() {
+      const lista = document.getElementById('lista-carrinho');
+      const contagem = document.getElementById('contagem-carrinho');
+      const valorTotal = document.getElementById('valor-total');
+      const linkWhats = document.getElementById('finalizar-whatsapp');
+
+      contagem.innerText = carrinho.length;
+      valorTotal.innerText = total.toFixed(2).replace('.', ',');
+
+      lista.innerHTML = '';
+      let textoZap = "Olá! Gostaria de reservar os seguintes passeios:%0A";
+
+      carrinho.forEach((item, index) => {
+        lista.innerHTML += `
+          <li class="item-carrinho">
+            ${item.nome} - R$ ${item.preco}
+            <i class="fas fa-trash remove-item" onclick="removerDoCarrinho(${index})"></i>
+          </li>`;
+        textoZap += `- ${item.nome} (R$ ${item.preco})%0A`;
+      });
+
+      textoZap += `%0ATotal: R$ ${total.toFixed(2)}`;
+      linkWhats.href = `https://wa.me/5573991976996?text=${textoZap}`;
+    }
+  </script>
+</body>
+</html>
