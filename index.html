@@ -4085,6 +4085,26 @@ body.theme-dark .card-avaliacao {
         if (btnGoogle) btnGoogle.style.display = "none";
       }
 
+      function initGoogleLoginComTentativas(maxTentativas = 20, intervaloMs = 300) {
+        let tentativas = 0;
+        const timer = setInterval(() => {
+          tentativas += 1;
+          initGoogleLogin();
+          if (window.google || tentativas >= maxTentativas) {
+            clearInterval(timer);
+          }
+        }, intervaloMs);
+      }
+
+      function acionarLoginGoogle() {
+        initGoogleLogin();
+        if (window.google && google.accounts && google.accounts.id) {
+          google.accounts.id.prompt();
+          return;
+        }
+        alert("Login Google ainda carregando. Tente novamente em alguns segundos.");
+      }
+
       function aplicarTema(tema) {
         const isDark = tema === "dark";
         document.body.classList.toggle("theme-dark", isDark);
@@ -4148,7 +4168,9 @@ body.theme-dark .card-avaliacao {
         const btnTema = document.getElementById("btn-theme");
         if (btnTema) btnTema.addEventListener("click", alternarTema);
 
-        initGoogleLogin();
+        initGoogleLoginComTentativas();
+        const btnGoogle = document.getElementById("btn-google");
+        if (btnGoogle) btnGoogle.addEventListener("click", acionarLoginGoogle);
         initDataClientePicker();
         const btnLogout = document.getElementById("btn-google-logout");
         if (btnLogout) btnLogout.addEventListener("click", logoutGoogle);
