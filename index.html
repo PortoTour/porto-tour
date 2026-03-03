@@ -29,7 +29,7 @@
       content="Reserve passeios, transfer e aluguel de veículos em Porto Seguro com segurança e guia credenciado."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://SEU-DOMINIO-AQUI/" />
+    <meta property="og:url" content="https://portotour.github.io/porto-tour/" />
     <meta
       property="og:image"
       content="https://i.catracalivre.com.br/vmsm_IoEHnttGFHV34ycsMuTd2E=/filters:quality(60)/catracalivre.com.br/wp-content/uploads/2024/01/istock-1340960918.jpg"
@@ -54,7 +54,7 @@
       name="twitter:image"
       content="https://i.catracalivre.com.br/vmsm_IoEHnttGFHV34ycsMuTd2E=/filters:quality(60)/catracalivre.com.br/wp-content/uploads/2024/01/istock-1340960918.jpg"
     />
-    <link rel="canonical" href="https://SEU-DOMINIO-AQUI/" />
+    <link rel="canonical" href="https://portotour.github.io/porto-tour/" />
 
     <!-- ===================== FONTES E ÍCONES ===================== -->
     <link
@@ -849,6 +849,17 @@ body.theme-dark {
 .theme-dark .painel-lateral {
   background: #0f141b;
   color: #eaeaea;
+}
+.theme-dark .item-carrinho {
+  background: #121b27;
+  border-color: #2a3648;
+  color: #eaf1ff;
+}
+.theme-dark .item-carrinho span {
+  color: #eaf1ff;
+}
+.theme-dark .remove-item {
+  color: #ff7b88;
 }
 .theme-dark .menu-item { color: #ddd; }
 .theme-dark .modal-desc {
@@ -2239,7 +2250,7 @@ body.theme-dark .card-avaliacao {
           <div class="pay-group" id="pagamento-carrinho">
             <div class="pay-option" data-pagamento="Pix" aria-hidden="true">
               <span class="badge-pagamento">Pix</span>
-              <small>2% OFF a partir de 2 passeios</small>
+              <small>5% OFF a partir de 2 passeios</small>
             </div>
             <div class="pay-option" data-pagamento="Cartão" aria-hidden="true">
               <span class="badge-pagamento">Cartão</span>
@@ -2248,7 +2259,7 @@ body.theme-dark .card-avaliacao {
           </div>
         </div>
         <div class="desconto-msg" id="msg-desc">
-          🎉 Desconto de 2% aplicado!
+          🎉 Desconto de 5% aplicado!
         </div>
         <div class="total-carrinho">
           Total: R$ <span id="valor-total">0,00</span>
@@ -2360,6 +2371,14 @@ body.theme-dark .card-avaliacao {
           onclick="editarDados()"
         >
           <i class="fas fa-pen-to-square"></i> Editar Dados
+        </button>
+        <button
+          class="btn-login"
+          id="btn-sair-conta"
+          style="display: none; background: #444"
+          onclick="sairConta()"
+        >
+          <i class="fas fa-right-from-bracket"></i> Sair da Conta
         </button>
       </div>
     </div>
@@ -3006,8 +3025,20 @@ body.theme-dark .card-avaliacao {
         messagingSenderId: "SEU_MESSAGING_SENDER_ID",
         appId: "SEU_APP_ID",
       };
-      // === EDITÁVEL: Informe seu Client ID do Google (ou será solicitado na primeira vez) ===
-      let GOOGLE_CLIENT_ID = localStorage.getItem("GOOGLE_CLIENT_ID") || "";
+      // === EDITÁVEL: Informe seu Client ID do Google para ativar login sem popup ===
+      const GOOGLE_CLIENT_ID_FIXO =
+        "638985243242-pgt6c3jhlv3g9dmp3fjcd7nh4mkrg3bf.apps.googleusercontent.com";
+      let GOOGLE_CLIENT_ID = localStorage.getItem("GOOGLE_CLIENT_ID") || GOOGLE_CLIENT_ID_FIXO;
+
+      function googleClientIdValido(clientId) {
+        if (!clientId || typeof clientId !== "string") return false;
+        const valor = clientId.trim();
+        return (
+          valor.length > 20 &&
+          valor.endsWith(".apps.googleusercontent.com") &&
+          !valor.startsWith("SEU_")
+        );
+      }
 
       function possuiConfigFirebase() {
         return (
@@ -3194,7 +3225,7 @@ body.theme-dark .card-avaliacao {
       function obterRegraDesconto(pagamento) {
         const qtdPasseios = carrinho.length;
         if (pagamento === "Pix" && qtdPasseios >= 2) {
-          return { percentual: 0.02, texto: "2%" };
+          return { percentual: 0.05, texto: "5%" };
         }
         if (
           (pagamento === "Cartão" || pagamento === "Cartão de Crédito") &&
@@ -3203,6 +3234,26 @@ body.theme-dark .card-avaliacao {
           return { percentual: 0.05, texto: "5%" };
         }
         return { percentual: 0, texto: "0%" };
+      }
+
+      function ehQuadriciclo(nomePasseio) {
+        return /quadriciclo/i.test(nomePasseio || "");
+      }
+
+      function obterQuantidadePessoasAtiva() {
+        const inputFormulario = document.getElementById("pessoas");
+        if (inputFormulario) {
+          const qtdForm = Number(inputFormulario.value);
+          if (Number.isFinite(qtdForm) && qtdForm > 0) return Math.floor(qtdForm);
+        }
+        return 1;
+      }
+
+      function calcularPrecoItem(item, quantidadePessoas = obterQuantidadePessoasAtiva()) {
+        if (!item || !Number.isFinite(Number(item.preco))) return 0;
+        const precoBase = Number(item.preco);
+        if (ehQuadriciclo(item.nome)) return precoBase;
+        return precoBase * quantidadePessoas;
       }
 
       function calcularTotaisComDesconto(pagamento) {
@@ -3278,6 +3329,31 @@ body.theme-dark .card-avaliacao {
       function verificarDados() {
         const nome = localStorage.getItem("clienteNome");
         const hotel = localStorage.getItem("clienteHotel");
+        const pessoas = localStorage.getItem("clientePessoas") || "";
+        const apto = localStorage.getItem("clienteApto") || "";
+        const acompanhantes = localStorage.getItem("clienteAcompanhantes") || "";
+        const dataPasseio = localStorage.getItem("clienteData") || "";
+        const pagamento = localStorage.getItem("clientePagamento") || "";
+
+        const nomeInput = document.getElementById("nome-cliente");
+        const hotelInput = document.getElementById("hotel-cliente");
+        const pessoasInput = document.getElementById("pessoas-cliente");
+        const aptoInput = document.getElementById("quarto-cliente");
+        const acompanhantesInput = document.getElementById("acompanhantes-cliente");
+        const dataInput = document.getElementById("data-cliente");
+        const pagamentoSelect = document.getElementById("pagamento-cliente");
+
+        if (nomeInput && nome) nomeInput.value = nome;
+        if (hotelInput && hotel) hotelInput.value = hotel;
+        if (pessoasInput && pessoas) pessoasInput.value = pessoas;
+        if (aptoInput && apto) aptoInput.value = apto;
+        if (acompanhantesInput && acompanhantes) acompanhantesInput.value = acompanhantes;
+        if (dataInput && dataPasseio) dataInput.value = dataPasseio;
+        if (pagamentoSelect && pagamento) {
+          pagamentoSelect.value = pagamento;
+          selecionarPagamento(pagamento);
+        }
+
         if (nome && hotel) {
           const inputs = document.getElementById("inputs-login");
           if (inputs) inputs.style.display = "none";
@@ -3286,18 +3362,32 @@ body.theme-dark .card-avaliacao {
       }
 
       function salvarCliente() {
-        const nome = document.getElementById("nome-cliente").value;
-        const hotel = document.getElementById("hotel-cliente").value;
+        const nome = document.getElementById("nome-cliente").value.trim();
+        const hotel = document.getElementById("hotel-cliente").value.trim();
+        const pessoas = document.getElementById("pessoas-cliente").value.trim();
+        const apto = document.getElementById("quarto-cliente").value.trim();
+        const acompanhantes = document
+          .getElementById("acompanhantes-cliente")
+          .value.trim();
+        const dataPasseio = document.getElementById("data-cliente").value.trim();
+        const pagamento = document.getElementById("pagamento-cliente").value;
 
         if (!nome || !hotel) {
-          alert("Preencha todos os campos.");
+          alert("Preencha pelo menos nome e hotel.");
           return;
         }
 
         localStorage.setItem("clienteNome", nome);
         localStorage.setItem("clienteHotel", hotel);
+        localStorage.setItem("clientePessoas", pessoas);
+        localStorage.setItem("clienteApto", apto);
+        localStorage.setItem("clienteAcompanhantes", acompanhantes);
+        localStorage.setItem("clienteData", dataPasseio);
+        localStorage.setItem("clientePagamento", pagamento);
+        if (pagamento) selecionarPagamento(pagamento);
         const inputs = document.getElementById("inputs-login");
         if (inputs) inputs.style.display = "none";
+        atualizarInterface();
       }
 
       function editarDados() {
@@ -3309,7 +3399,77 @@ body.theme-dark .card-avaliacao {
 
       function atualizarInterface() {
         const nome = localStorage.getItem("clienteNome");
-        // Aqui você pode atualizar elementos da página com o nome/hotel do cliente
+        const googleRaw = localStorage.getItem("googleUser");
+        const googleUser = googleRaw ? JSON.parse(googleRaw) : null;
+        const nomeFinal = googleUser?.nome || nome || "";
+        const fotoFinal = googleUser?.picture || "";
+
+        const navAvatar = document.getElementById("navUserAvatar");
+        const navUserName = document.getElementById("navUserName");
+        const navUserStatus = document.getElementById("navUserStatus");
+        const btnEditarDados = document.getElementById("btn-editar-dados");
+        const btnSairConta = document.getElementById("btn-sair-conta");
+
+        if (navUserName) {
+          navUserName.textContent = nomeFinal;
+          navUserName.style.display = nomeFinal ? "inline" : "none";
+        }
+        if (navUserStatus) {
+          navUserStatus.style.display = nomeFinal ? "inline-block" : "none";
+        }
+        if (navAvatar) {
+          if (fotoFinal) {
+            navAvatar.style.backgroundImage = `url("${fotoFinal}")`;
+            navAvatar.style.display = "inline-block";
+          } else {
+            navAvatar.style.backgroundImage = "none";
+            navAvatar.style.display = "none";
+          }
+        }
+        if (btnEditarDados) {
+          btnEditarDados.style.display = nome ? "block" : "none";
+        }
+        if (btnSairConta) {
+          btnSairConta.style.display = nomeFinal ? "block" : "none";
+        }
+      }
+
+      function sairConta() {
+        if (!confirm("Deseja sair da conta e limpar seus dados salvos?")) return;
+
+        [
+          "clienteNome",
+          "clienteHotel",
+          "clientePessoas",
+          "clienteApto",
+          "clienteAcompanhantes",
+          "clienteData",
+          "clientePagamento",
+          "googleUser",
+        ].forEach((chave) => localStorage.removeItem(chave));
+
+        const idsParaLimpar = [
+          "nome-cliente",
+          "hotel-cliente",
+          "pessoas-cliente",
+          "quarto-cliente",
+          "acompanhantes-cliente",
+          "data-cliente",
+        ];
+        idsParaLimpar.forEach((id) => {
+          const campo = document.getElementById(id);
+          if (campo) campo.value = "";
+        });
+
+        const pagamentoCliente = document.getElementById("pagamento-cliente");
+        if (pagamentoCliente) pagamentoCliente.value = "";
+        selecionarPagamento("");
+
+        const inputs = document.getElementById("inputs-login");
+        if (inputs) inputs.style.display = "block";
+
+        updateGoogleUI();
+        atualizarInterface();
       }
 
       function formatarTextoModal(descricao) {
@@ -3482,14 +3642,20 @@ body.theme-dark .card-avaliacao {
 
         const lista = document.getElementById("lista-carrinho");
         const contador = document.getElementById("contagem-carrinho");
+        const quantidadePessoas = obterQuantidadePessoasAtiva();
         lista.innerHTML = "";
         total = 0;
 
         carrinho.forEach((item, index) => {
-          total += item.preco;
+          const totalItem = calcularPrecoItem(item, quantidadePessoas);
+          total += totalItem;
+          const detalheQuantidade =
+            !ehQuadriciclo(item.nome) && quantidadePessoas > 1
+              ? ` (x${quantidadePessoas} pessoas)`
+              : "";
           lista.innerHTML += `
         <li class="item-carrinho">
-            <span>${item.nome} - R$ ${item.preco.toFixed(2)}</span>
+            <span>${item.nome}${detalheQuantidade} - R$ ${totalItem.toFixed(2)}</span>
             <span class="remove-item" onclick="removerDoCarrinho(${index})">
                 <i class="fas fa-trash"></i>
             </span>
@@ -3538,7 +3704,7 @@ body.theme-dark .card-avaliacao {
         if (regra.percentual > 0) {
           info.textContent = `🎉 Desconto de ${regra.texto} aplicado!`;
         } else if (selectCliente.value === "Pix") {
-          info.textContent = `Pix: desconto de 2% a partir de 2 passeios.`;
+          info.textContent = `Pix: desconto de 5% a partir de 2 passeios.`;
           if (qtdPasseios < 2) {
             info.textContent += ` Faltam ${2 - qtdPasseios}.`;
           }
@@ -3623,6 +3789,13 @@ body.theme-dark .card-avaliacao {
         if (overlay) {
           overlay.style.display = "flex";
           overlay.classList.add("ativo");
+          const inputPessoas = document.getElementById("pessoas");
+          if (inputPessoas) {
+            inputPessoas.dispatchEvent(new Event("input", { bubbles: true }));
+          } else {
+            atualizarCarrinho();
+            atualizarResumo();
+          }
         }
         atualizarOverlayEstado();
       }
@@ -3670,7 +3843,7 @@ body.theme-dark .card-avaliacao {
                   <option value="Cartão">Cartão</option>
               </select>
               <div class="discount-hint">
-                Pix: 2% (a partir de 2 passeios) | Cartão: 5% (a partir de 3 passeios)
+                Pix: 5% (a partir de 2 passeios) | Cartão: 5% (a partir de 3 passeios)
               </div>
             </div>
 
@@ -3703,6 +3876,7 @@ body.theme-dark .card-avaliacao {
           const hotel = document.getElementById("hotel").value;
           const apto = document.getElementById("apto").value;
           const pessoas = document.getElementById("pessoas").value;
+          const qtdPessoas = Math.max(1, Math.floor(Number(pessoas) || 1));
           const dataInput = document.getElementById("dataPasseio").value;
           const data = dataInput
             ? dataInput.split("-").reverse().join("/")
@@ -3721,6 +3895,8 @@ body.theme-dark .card-avaliacao {
             return;
           }
 
+          atualizarCarrinho();
+
           const numeroReserva = "PS" + Date.now().toString().slice(-6);
           const { regra, desconto, totalFinal } =
             calcularTotaisComDesconto(pagamento);
@@ -3730,7 +3906,12 @@ body.theme-dark .card-avaliacao {
           mensagem += `🧾 Reserva Nº: ${numeroReserva}\n\n`;
           mensagem += `👤 Nome: ${nome}\n🏨 Hotel: ${hotel}\n🚪 Apto: ${apto}\n👥 Pessoas: ${pessoas}\n📅 Data: ${data}\n💳 Pagamento: ${pagamento}\n\n📍 Passeios escolhidos:\n`;
           carrinho.forEach((item) => {
-            mensagem += `• ${item.nome} - R$ ${item.preco.toFixed(2)}\n`;
+            const totalItem = calcularPrecoItem(item, qtdPessoas);
+            const detalheQuantidade =
+              !ehQuadriciclo(item.nome) && qtdPessoas > 1
+                ? ` (x${qtdPessoas} pessoas)`
+                : "";
+            mensagem += `• ${item.nome}${detalheQuantidade} - R$ ${totalItem.toFixed(2)}\n`;
           });
           mensagem += `\n💰 Subtotal: R$ ${total.toFixed(2)}`;
           mensagem += `\n🎁 Desconto ${percentual}: - R$ ${desconto.toFixed(2)}`;
@@ -3788,6 +3969,17 @@ body.theme-dark .card-avaliacao {
           selecionarPagamento(sel.value);
           atualizarResumoFormulario();
         });
+        const inputPessoas = document.getElementById("pessoas");
+        if (inputPessoas) {
+          const onAlterarPessoas = () => {
+            atualizarCarrinho();
+            atualizarResumoFormulario();
+          };
+          inputPessoas.addEventListener("input", onAlterarPessoas);
+          inputPessoas.addEventListener("change", onAlterarPessoas);
+          // Recalcula imediatamente ao abrir o formulario (inclusive valor pre-preenchido).
+          onAlterarPessoas();
+        }
 
         // ==========================
         // INICIALIZAÇÃO
@@ -3851,6 +4043,7 @@ body.theme-dark .card-avaliacao {
           if (container) container.style.display = "block";
           if (btnGoogle) btnGoogle.style.display = "inline-block";
         }
+        atualizarInterface();
       }
 
       function logoutGoogle() {
@@ -3868,17 +4061,15 @@ body.theme-dark .card-avaliacao {
           return;
         }
         if (!window.google || !container) return;
-        if (!GOOGLE_CLIENT_ID) {
+        if (!googleClientIdValido(GOOGLE_CLIENT_ID)) {
           if (btnGoogle) {
-            btnGoogle.onclick = function () {
-              const id = prompt("Informe seu Google Client ID");
-              if (id) {
-                GOOGLE_CLIENT_ID = id;
-                localStorage.setItem("GOOGLE_CLIENT_ID", id);
-                initGoogleLogin();
-              }
-            };
+            btnGoogle.disabled = true;
+            btnGoogle.title =
+              "Configure GOOGLE_CLIENT_ID_FIXO no codigo para ativar o login Google";
+            btnGoogle.innerHTML =
+              '<i class="fab fa-google"></i> Google nao configurado';
           }
+          if (container) container.style.display = "none";
           return;
         }
         google.accounts.id.initialize({
@@ -3982,6 +4173,8 @@ body.theme-dark .card-avaliacao {
         }
         renderAvaliacoes();
         iniciarAvaliacoesNuvem();
+        verificarDados();
+        atualizarCarrinho();
         atualizarDescontoClienteUI();
         atualizarAlturaNav();
         window.addEventListener("resize", atualizarAlturaNav);
@@ -4032,6 +4225,8 @@ body.theme-dark .card-avaliacao {
     </script>
   </body>
 </html>
+
+
 
 
 
