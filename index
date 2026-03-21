@@ -3318,20 +3318,20 @@
       let notaSelecionada = 0;
       // Fonte unica para ajustes rapidos de preco (card + carrinho + modal).
       const PRECO_PASSEIOS = {
-        "Arraial d'Ajuda": 80,
-        "City Tour Histórico": 70,
-        Trancoso: 70,
-        "Praia do Espelho": 90,
-        "Caraíva (s/ travessia)": 110,
-        "Recife de Fora (c/ Transfer)": 180,
+        "Arraial d'Ajuda": 100,
+        "City Tour Histórico": 90,
+        Trancoso: 90,
+        "Praia do Espelho": 110,
+        "Caraíva (s/ travessia)": 130,
+        "Recife de Fora (c/ Transfer)": 185,
         "Recife de Fora (s/ Transfer)": 155,
         "Mergulho (c/ Transfer)": 250,
-        "Coroa Vermelha": 60,
-        "Fluvial e Coroa Alta": 110,
+        "Coroa Vermelha": 75,
+        "Fluvial e Coroa Alta": 120,
         "Quadriciclo (Reserva Indígena)": 280,
         "Quadriciclo (Rota do Açaí)": 280,
-        "Trancoso x Praia do Espelho": 100,
-        "Praia do Espelho x Caraíva": 120,
+        "Trancoso x Praia do Espelho": 130,
+        "Praia do Espelho x Caraíva": 150,
       };
       const AVALIACOES_KEY = "porto_tour_avaliacoes";
       let avaliacoesCache = [];
